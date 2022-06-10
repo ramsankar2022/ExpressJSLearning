@@ -1,0 +1,29 @@
+body {
+  margin: 20px;
+  font-family: "Poppins";
+  color: #333;
+}
+
+a {
+  color: rgb(13, 155, 124);
+  text-decoration: none;
+  font-weight: bold;
+  padding-right: 15px;
+}
+
+a:hover {
+  color: rgb(12, 214, 170);
+}
+
+nav {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  max-width: 1160px;
+  margin: 0 auto;
+  border-bottom: 1px solid #e2e2e2;
+}
+
+nav h1 {
+  margin-right: auto;
+}
