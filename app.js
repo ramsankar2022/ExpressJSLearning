@@ -1,8 +1,13 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+import cors from "cors";
 const app = express();
-const jsencrypt = require("node-jsencrypt");
-const fs = require("fs");
+import jsencrypt from "node-jsencrypt";
+import fs from "fs";
+import { getAllUsers, getUserById, createUser } from "./database.js";
 
 const privateKey = fs.readFileSync("./private.pem").toString("utf8");
 const jsenc = new jsencrypt();
@@ -12,7 +17,10 @@ app.use(cors());
 app.set("view engine", "ejs");
 app.set("views", "Pages");
 
-app.listen(5000);
+
+app.listen(5000, () => {
+  console.log(' Development server running on 5000 ')
+});
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -50,19 +58,7 @@ app.post("/signin", (req, res) => {
   }
 });
 
-// app.get("/login", (req, res) => {
-//   let userName = req.query.uname;
-//   let password = req.query.password;
-
-//   if (userName === "" || password === "") {
-//     res.render("FilenotFound");
-//   } else {
-//     res.render("welcome");
-//   }
-// });
-
 app.post("/signinuser", (req, res) => {
-
   console.log(req.body.credentials);
   const eId = "test@gmail.com";
   const pwd = "password";
@@ -97,6 +93,55 @@ app.post("/signinuser", (req, res) => {
   }
 
   res.json({ status: false, message: "user not found" });
+});
+
+app.get("/users", async (req, res) => {
+  const users = await getAllUsers();
+  res.send(users);
+});
+
+app.get("/user/:id", async (req, res) => {
+  const id = req.params.id;
+  const user = await getUserById(id);
+  res.send(user);
+});
+
+app.post("/users", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+  var credentials = JSON.parse(jsenc.decrypt(req.body.credentials));
+
+  console.log(credentials);
+
+  if (!("userName" in credentials)) {
+    res.json({ status: false, message: "username is required" });
+    return;
+  }
+
+  if (!("userAddress" in credentials)) {
+    res.json({ status: false, message: "address is required" });
+    return;
+  }
+
+  var userName = credentials.userName.trim();
+  var userAddress = credentials.userAddress.trim();
+
+  if (userAddress == "") {
+    res.json({ status: false, message: "address is required" });
+    return;
+  }
+
+  const user = await createUser(userName, userAddress);
+
+  if (!user) {
+    res.json({ status: false, message: "User Creation Failed" });
+  }
+
+  res.json({
+    status: true,
+    message: "User Added Successfully",
+  });
+
+  return;
 });
 
 app.use((req, res) => {
